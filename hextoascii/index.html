@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex to ASCII Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Hex to ASCII Viewer</h1>
+
+        <!-- File upload input -->
+        <input type="file" id="fileInput" accept=".csv">
+        <br><br>
+
+        <!-- Button to trigger file processing -->
+        <button id="processFileBtn">Process File</button>
+        
+        <h2>Hex Data and ASCII Conversion</h2>
+        <div class="tables-wrapper">
+            <div class="table-container">
+                <h3>Hex Values</h3>
+                <table id="hexTable"></table>
+            </div>
+            <div class="table-container">
+                <h3>ASCII Values</h3>
+                <table id="asciiTable"></table>
+            </div>
+        </div>
+
+        <!-- Display the count of the highlighted character -->
+        <div id="characterCount" style="margin-top: 20px; font-size: 18px; font-weight: bold;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

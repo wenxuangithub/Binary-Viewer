@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary File Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Binary File Viewer</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn primary-btn" id="uploadBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Upload File
+                </button>
+                <button class="btn secondary-btn" id="exportBtn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Export ASCII
+                </button>
+                <button class="btn compare-btn" id="compareBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 3h5v5" />
+                        <path d="M21 3L9 15" />
+                        <path d="M8 3H3v5" />
+                        <path d="M3 3l12 12" />
+                    </svg>
+                    Compare Files
+                </button>
+            </div>
+            <input type="file" id="fileInput" style="display: none;">
+        </div>
+        <div id="fileInfo" class="file-info">
+            <span>Current File: </span><span id="fileName">No file loaded</span>
+        </div>
+        <div class="split-view">
+            <div class="viewer-section">
+                <div class="viewer-title">Hexadecimal View</div>
+                <div id="hexViewer" class="viewer"></div>
+            </div>
+            <div class="viewer-section">
+                <div class="viewer-title">ASCII View</div>
+                <div id="asciiViewer" class="viewer"></div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div style='text-align: center;'>
+
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function () {
+            const BinaryViewer = {
+                bytesPerRow: 16,
+                fileContent: null,
+
+                init: function () {
+                    $('#uploadBtn').on('click', () => $('#fileInput').click());
+                    $('#fileInput').on('change', (e) => this.handleFileUpload(e));
+                    $('#exportBtn').on('click', () => this.exportAscii());
+                    $('#compareBtn').on('click', () => this.redirectToCompare());
+                    this.fileName = '';
+                },
+
+                // Add new method for redirection
+                redirectToCompare: function () {
+                    window.location.href = 'compare.html';
+                },
+
+                handleFileUpload: function (event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    this.fileName = file.name;
+                    $('#fileName').text(this.fileName);
+                    $('.file-info').addClass('visible');
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.fileContent = new Uint8Array(e.target.result);
+                        this.render();
+                        $('#exportBtn').prop('disabled', false);
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+
+                toHex: function (num) {
+                    return num.toString(16).padStart(2, '0').toUpperCase();
+                },
+
+                toAscii: function (num) {
+                    return (num >= 32 && num <= 126) ? String.fromCharCode(num) : '.';
+                },
+
+                render: function () {
+                    if (!this.fileContent) {
+                        const placeholder = '<div class="placeholder">Upload a file to view its binary content</div>';
+                        $('#hexViewer, #asciiViewer').html(placeholder);
+                        return;
+                    }
+
+                    const $hexViewer = $('#hexViewer').empty();
+                    const $asciiViewer = $('#asciiViewer').empty();
+
+                    for (let offset = 0; offset < this.fileContent.length; offset += this.bytesPerRow) {
+                        const bytes = Array.from(this.fileContent.slice(offset, offset + this.bytesPerRow));
+                        const offsetHex = offset.toString(16).padStart(8, '0').toUpperCase();
+
+                        const $hexRow = $('<div>').addClass('row');
+                        $hexRow.append($('<span>').addClass('offset').text(offsetHex));
+                        const $hexContent = $('<div>').addClass('content');
+
+                        const $asciiRow = $('<div>').addClass('row');
+                        $asciiRow.append($('<span>').addClass('offset').text(offsetHex));
+                        const $asciiContent = $('<div>').addClass('content');
+
+                        let hexBytes = [];
+                        let asciiBytes = [];
+
+                        bytes.forEach((byte, idx) => {
+                            const hexByteElement = $('<span>')
+                                .addClass('hex-byte')
+                                .text(this.toHex(byte));
+                            const asciiByteElement = $('<span>')
+                                .addClass('ascii-byte')
+                                .text(this.toAscii(byte));
+
+                            hexBytes.push(hexByteElement);
+                            asciiBytes.push(asciiByteElement);
+
+                            $hexContent.append(hexByteElement);
+                            $asciiContent.append(asciiByteElement);
+                        });
+
+                        // Pad incomplete rows
+                        for (let i = bytes.length; i < this.bytesPerRow; i++) {
+                            $hexContent.append($('<span>').addClass('hex-byte').text('  '));
+                            $asciiContent.append($('<span>').addClass('ascii-byte').text('.'));
+                        }
+
+                        $hexRow.append($hexContent);
+                        $asciiRow.append($asciiContent);
+
+                        $hexViewer.append($hexRow);
+                        $asciiViewer.append($asciiRow);
+
+                        // Add mouse hover event listeners for highlighting
+                        hexBytes.forEach((hexByte, idx) => {
+                            hexByte.on('mouseenter', () => {
+                                this.highlightByte(hexByte, asciiBytes[idx]);
+                            });
+                            hexByte.on('mouseleave', () => {
+                                this.removeHighlight(hexByte, asciiBytes[idx]);
+                            });
+                        });
+
+                        asciiBytes.forEach((asciiByte, idx) => {
+                            asciiByte.on('mouseenter', () => {
+                                this.highlightByte(asciiByte, hexBytes[idx]);
+                            });
+                            asciiByte.on('mouseleave', () => {
+                                this.removeHighlight(asciiByte, hexBytes[idx]);
+                            });
+                        });
+                    }
+                },
+
+                highlightByte: function (hexByte, asciiByte) {
+                    hexByte.addClass('highlight');
+                    asciiByte.addClass('highlight');
+                },
+
+
+                removeHighlight: function (hexByte, asciiByte) {
+                    hexByte.removeClass('highlight');
+                    asciiByte.removeClass('highlight');
+                },
+
+                exportAscii: function () {
+                    if (!this.fileContent) return;
+
+                    let csvContent = '';
+
+                    // Add data rows only - no headers
+                    for (let offset = 0; offset < this.fileContent.length; offset += this.bytesPerRow) {
+                        // Add offset
+                        csvContent += offset.toString(16).padStart(8, '0').toUpperCase() + ',';
+
+                        // Add ASCII values
+                        const bytes = Array.from(this.fileContent.slice(offset, offset + this.bytesPerRow));
+                        for (let i = 0; i < this.bytesPerRow; i++) {
+                            if (i < bytes.length) {
+                                csvContent += this.toAscii(bytes[i]);
+                            } else {
+                                csvContent += '.';
+                            }
+                            if (i < this.bytesPerRow - 1) csvContent += ',';
+                        }
+                        csvContent += '\n';
+                    }
+
+                    // Trigger download
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    // Use original filename with _ascii.csv suffix
+                    const exportName = this.fileName.replace(/\.[^/.]+$/, '') + '_ascii.csv';
+                    a.download = exportName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            };
+
+            BinaryViewer.init();
+        });
+    </script>
+</body>
+
+</html>

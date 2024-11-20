@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary File Comparison</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Binary File Comparison</h2>
+            <div style="display: flex; gap: 10px;">
+                <div class="upload-group">
+                    <button class="btn primary-btn" id="uploadBtn1">
+                        Upload File 1
+                    </button>
+                    <input type="file" id="fileInput1" style="display: none;">
+                </div>
+                <div class="upload-group">
+                    <button class="btn primary-btn" id="uploadBtn2">
+                        Upload File 2
+                    </button>
+                    <input type="file" id="fileInput2" style="display: none;">
+                </div>
+                <!-- <button class="btn secondary-btn" id="compareBtn" disabled>Compare Files</button> -->
+                 <!-- Still Debugging -->
+                <button class="btn back-btn" id="backBtn">Back</button>
+            </div>
+        </div>
+
+        <div class="file-info-container">
+            <div id="fileInfo1" class="file-info">
+                <span>File 1: </span><span id="fileName1">No file loaded</span>
+            </div>
+            <div id="fileInfo2" class="file-info">
+                <span>File 2: </span><span id="fileName2">No file loaded</span>
+            </div>
+        </div>
+
+        <div class="split-view">
+            <!-- Left Side (File 1) -->
+            <div class="viewer-section">
+                <div class="viewer-title">File 1 - Hex</div>
+                <div id="hexViewer1" class="viewer"></div>
+                <div class="viewer-title">File 1 - ASCII</div>
+                <div id="asciiViewer1" class="viewer"></div>
+            </div>
+
+            <!-- Right Side (File 2) -->
+            <div class="viewer-section">
+                <div class="viewer-title">File 2 - Hex</div>
+                <div id="hexViewer2" class="viewer"></div>
+                <div class="viewer-title">File 2 - ASCII</div>
+                <div id="asciiViewer2" class="viewer"></div>
+            </div>
+        </div>
+
+        <div id="diffSummary" class="diff-summary">
+            <h3>Differences Found: <span id="diffCount">0</span></h3>
+            <div id="diffList" class="diff-list"></div>
+        </div>
+    </div>
+    <footer>
+        <div style='text-align: center;'>
+            <p>Developed with ❤️ by <a href='https://github.com/wenxuangithub' target='_blank'> Wen Xuan</a> </p>
+          </div>
+    </footer>
+
+    <script src="compare.js"></script>
+</body>
+</html>
